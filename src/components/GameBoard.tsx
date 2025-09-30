@@ -4,41 +4,68 @@ import { MemoryCard } from "./MemoryCard";
 import { GameHeader } from "./GameHeader";
 import { WinModal } from "./WinModal";
 import { Button } from "@/components/ui/button";
-import { Card, GameState } from "@/types/game";
+import { Card, GameState, LEVELS, LevelConfig } from "@/types/game";
 import { toast } from "sonner";
 
-const createShuffledDeck = (): Card[] => {
+const createShuffledDeck = (levelConfig: LevelConfig): Card[] => {
   const pairs = [];
-  for (let i = 1; i <= 8; i++) {
+  for (let i = 1; i <= levelConfig.pairs; i++) {
     pairs.push(
       { id: i * 2 - 1, value: i, isFlipped: false, isMatched: false },
       { id: i * 2, value: i, isFlipped: false, isMatched: false }
     );
   }
+  
+  // Fill remaining slots with random cards if grid is larger than pairs
+  const totalSlots = levelConfig.gridCols * levelConfig.gridRows;
+  const remainingSlots = totalSlots - (levelConfig.pairs * 2);
+  
+  for (let i = 0; i < remainingSlots; i++) {
+    const randomValue = Math.floor(Math.random() * levelConfig.pairs) + 1;
+    pairs.push({ 
+      id: levelConfig.pairs * 2 + i + 1, 
+      value: randomValue, 
+      isFlipped: false, 
+      isMatched: false 
+    });
+  }
+  
   return pairs.sort(() => Math.random() - 0.5);
 };
 
 export const GameBoard = () => {
   const [gameState, setGameState] = useState<GameState>({
-    cards: createShuffledDeck(),
+    cards: createShuffledDeck(LEVELS[0]),
     flippedCards: [],
     moves: 0,
     isComplete: false,
     startTime: null,
     endTime: null,
+    currentLevel: 1,
+    score: 0,
   });
 
-  const resetGame = useCallback(() => {
+  const currentLevelConfig = LEVELS[gameState.currentLevel - 1];
+
+  const resetGame = useCallback((level?: number) => {
+    const targetLevel = level || gameState.currentLevel;
+    const levelConfig = LEVELS[targetLevel - 1];
+    
     setGameState({
-      cards: createShuffledDeck(),
+      cards: createShuffledDeck(levelConfig),
       flippedCards: [],
       moves: 0,
       isComplete: false,
       startTime: null,
       endTime: null,
+      currentLevel: targetLevel,
+      score: level ? 0 : gameState.score, // Reset score only if starting from level 1
     });
-    toast("New game started! Good luck! 🎮");
-  }, []);
+    
+    toast(`Level ${targetLevel}: ${levelConfig.name}! 🎮`, {
+      description: `${levelConfig.gridCols}×${levelConfig.gridRows} grid with ${levelConfig.pairs} pairs`
+    });
+  }, [gameState.currentLevel, gameState.score]);
 
   const handleCardClick = useCallback((cardId: number) => {
     if (gameState.flippedCards.length === 2 || gameState.isComplete) return;
@@ -94,11 +121,17 @@ export const GameBoard = () => {
 
           const allMatched = newCards.every(c => c.isMatched);
           const endTime = allMatched ? Date.now() : null;
+          let newScore = prev.score;
           
-          if (allMatched) {
-            const duration = endTime! - (prev.startTime || 0);
-            toast("Congratulations! 🏆", { 
-              description: `You won in ${newMoves} moves and ${Math.round(duration / 1000)} seconds!` 
+          if (allMatched && prev.startTime) {
+            const duration = endTime! - prev.startTime;
+            const timeBonus = Math.max(0, currentLevelConfig.timeBonus * 1000 - duration);
+            const moveBonus = Math.max(0, (currentLevelConfig.pairs * 3 - newMoves) * 100);
+            const levelBonus = currentLevelConfig.level * 500;
+            newScore += Math.round(timeBonus / 100) + moveBonus + levelBonus;
+            
+            toast("Level Complete! 🏆", { 
+              description: `+${Math.round(timeBonus / 100) + moveBonus + levelBonus} points!` 
             });
           }
 
@@ -109,25 +142,39 @@ export const GameBoard = () => {
             moves: newMoves,
             isComplete: allMatched,
             endTime,
+            score: newScore,
           };
         });
       }, 1000);
     }
-  }, [gameState.flippedCards, gameState.cards, gameState.moves]);
+  }, [gameState.flippedCards, gameState.cards, gameState.moves, currentLevelConfig]);
+
+  const nextLevel = useCallback(() => {
+    if (gameState.currentLevel < LEVELS.length) {
+      resetGame(gameState.currentLevel + 1);
+    }
+  }, [gameState.currentLevel, resetGame]);
 
   const isCardDisabled = gameState.flippedCards.length === 2;
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-background via-background/95 to-primary/10 p-4">
-      <div className="max-w-2xl mx-auto">
+      <div className="max-w-4xl mx-auto">
         <GameHeader 
           moves={gameState.moves} 
           startTime={gameState.startTime}
           isComplete={gameState.isComplete}
+          currentLevel={gameState.currentLevel}
+          levelName={currentLevelConfig.name}
+          score={gameState.score}
         />
         
         <motion.div 
-          className="grid grid-cols-4 gap-4 mb-8 justify-items-center"
+          className={`grid gap-2 sm:gap-4 mb-8 justify-items-center max-w-fit mx-auto`}
+          style={{ 
+            gridTemplateColumns: `repeat(${currentLevelConfig.gridCols}, minmax(0, 1fr))`,
+            gridTemplateRows: `repeat(${currentLevelConfig.gridRows}, minmax(0, 1fr))` 
+          }}
           initial={{ opacity: 0, scale: 0.8 }}
           animate={{ opacity: 1, scale: 1 }}
           transition={{ duration: 0.5 }}
@@ -144,21 +191,35 @@ export const GameBoard = () => {
                   card={card}
                   onClick={() => handleCardClick(card.id)}
                   isDisabled={isCardDisabled}
+                  size={currentLevelConfig.gridCols >= 5 ? "small" : "normal"}
                 />
               </motion.div>
             ))}
           </AnimatePresence>
         </motion.div>
 
-        <div className="text-center">
-          <Button
-            onClick={resetGame}
-            variant="outline"
-            size="lg"
-            className="bg-background/50 backdrop-blur-sm hover:bg-background/70"
-          >
-            New Game
-          </Button>
+        <div className="text-center space-y-4">
+          <div className="flex gap-4 justify-center flex-wrap">
+            <Button
+              onClick={() => resetGame(1)}
+              variant="outline"
+              size="lg"
+              className="bg-background/50 backdrop-blur-sm hover:bg-background/70"
+            >
+              Restart Game
+            </Button>
+            
+            {gameState.currentLevel > 1 && (
+              <Button
+                onClick={() => resetGame(gameState.currentLevel)}
+                variant="outline"
+                size="lg"
+                className="bg-background/50 backdrop-blur-sm hover:bg-background/70"
+              >
+                Retry Level
+              </Button>
+            )}
+          </div>
         </div>
 
         <WinModal 
@@ -166,7 +227,13 @@ export const GameBoard = () => {
           moves={gameState.moves}
           startTime={gameState.startTime}
           endTime={gameState.endTime}
-          onNewGame={resetGame}
+          currentLevel={gameState.currentLevel}
+          levelName={currentLevelConfig.name}
+          score={gameState.score}
+          hasNextLevel={gameState.currentLevel < LEVELS.length}
+          onNewGame={() => resetGame(1)}
+          onRetryLevel={() => resetGame(gameState.currentLevel)}
+          onNextLevel={nextLevel}
         />
       </div>
     </div>

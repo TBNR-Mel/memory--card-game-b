@@ -5,6 +5,7 @@ interface MemoryCardProps {
   card: Card;
   onClick: () => void;
   isDisabled: boolean;
+  size?: "normal" | "small";
 }
 
 const cardColors = {
@@ -29,10 +30,13 @@ const cardSymbols = {
   8: "🎪",
 };
 
-export const MemoryCard = ({ card, onClick, isDisabled }: MemoryCardProps) => {
+export const MemoryCard = ({ card, onClick, isDisabled, size = "normal" }: MemoryCardProps) => {
+  const cardSize = size === "small" ? "w-12 h-12 sm:w-16 sm:h-16" : "w-16 h-16 sm:w-20 sm:h-20";
+  const iconSize = size === "small" ? "text-lg sm:text-xl" : "text-xl sm:text-2xl";
+  
   return (
     <motion.div
-      className="relative w-20 h-20 cursor-pointer perspective-1000"
+      className={`relative ${cardSize} cursor-pointer perspective-1000`}
       onClick={!isDisabled ? onClick : undefined}
       whileHover={!isDisabled ? { scale: 1.05 } : {}}
       whileTap={!isDisabled ? { scale: 0.95 } : {}}
@@ -44,14 +48,14 @@ export const MemoryCard = ({ card, onClick, isDisabled }: MemoryCardProps) => {
         {/* Card Back */}
         <div className="absolute inset-0 w-full h-full backface-hidden">
           <div className="w-full h-full bg-card-back rounded-lg border-2 border-border/20 shadow-lg flex items-center justify-center">
-            <div className="w-8 h-8 bg-gradient-to-br from-primary to-primary/60 rounded-full shadow-inner"></div>
+            <div className={`${size === "small" ? "w-4 h-4 sm:w-6 sm:h-6" : "w-6 h-6 sm:w-8 sm:h-8"} bg-gradient-to-br from-primary to-primary/60 rounded-full shadow-inner`}></div>
           </div>
         </div>
 
         {/* Card Front */}
         <div className="absolute inset-0 w-full h-full backface-hidden rotate-y-180">
           <div 
-            className={`w-full h-full ${cardColors[card.value]} rounded-lg border-2 border-white/20 shadow-lg flex items-center justify-center text-2xl transform transition-all duration-300 ${
+            className={`w-full h-full ${cardColors[card.value]} rounded-lg border-2 border-white/20 shadow-lg flex items-center justify-center ${iconSize} transform transition-all duration-300 ${
               card.isMatched ? 'ring-4 ring-success animate-pulse-glow' : ''
             }`}
           >

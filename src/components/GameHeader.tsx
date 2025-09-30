@@ -5,9 +5,12 @@ interface GameHeaderProps {
   moves: number;
   startTime: number | null;
   isComplete: boolean;
+  currentLevel: number;
+  levelName: string;
+  score: number;
 }
 
-export const GameHeader = ({ moves, startTime, isComplete }: GameHeaderProps) => {
+export const GameHeader = ({ moves, startTime, isComplete, currentLevel, levelName, score }: GameHeaderProps) => {
   const [time, setTime] = useState(0);
 
   useEffect(() => {
@@ -35,13 +38,25 @@ export const GameHeader = ({ moves, startTime, isComplete }: GameHeaderProps) =>
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.5 }}
     >
-      <h1 className="text-4xl font-bold text-foreground mb-6 bg-gradient-to-r from-primary to-primary/70 bg-clip-text text-transparent">
+      <h1 className="text-3xl md:text-4xl font-bold text-foreground mb-2 bg-gradient-to-r from-primary to-primary/70 bg-clip-text text-transparent">
         Memory Card Game
       </h1>
       
-      <div className="flex justify-center gap-8 text-lg">
+      <div className="mb-6 text-center">
+        <span className="text-lg text-muted-foreground">Level {currentLevel}: </span>
+        <span className="text-xl font-bold text-foreground">{levelName}</span>
+      </div>
+      
+      <div className="flex justify-center gap-3 md:gap-8 text-sm md:text-lg flex-wrap">
         <motion.div 
-          className="bg-card/50 backdrop-blur-sm px-4 py-2 rounded-lg border border-border/20"
+          className="bg-card/50 backdrop-blur-sm px-3 md:px-4 py-2 rounded-lg border border-border/20"
+          whileHover={{ scale: 1.05 }}
+        >
+          <span className="text-muted-foreground">Score: </span>
+          <span className="text-foreground font-bold">{score.toLocaleString()}</span>
+        </motion.div>
+        <motion.div 
+          className="bg-card/50 backdrop-blur-sm px-3 md:px-4 py-2 rounded-lg border border-border/20"
           whileHover={{ scale: 1.05 }}
         >
           <span className="text-muted-foreground">Moves: </span>
@@ -49,7 +64,7 @@ export const GameHeader = ({ moves, startTime, isComplete }: GameHeaderProps) =>
         </motion.div>
         
         <motion.div 
-          className="bg-card/50 backdrop-blur-sm px-4 py-2 rounded-lg border border-border/20"
+          className="bg-card/50 backdrop-blur-sm px-3 md:px-4 py-2 rounded-lg border border-border/20"
           whileHover={{ scale: 1.05 }}
         >
           <span className="text-muted-foreground">Time: </span>
