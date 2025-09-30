@@ -16,18 +16,12 @@ const createShuffledDeck = (levelConfig: LevelConfig): Card[] => {
     );
   }
   
-  // Fill remaining slots with random cards if grid is larger than pairs
+  // Ensure grid size exactly matches number of cards (pairs * 2)
   const totalSlots = levelConfig.gridCols * levelConfig.gridRows;
-  const remainingSlots = totalSlots - (levelConfig.pairs * 2);
+  const expectedCards = levelConfig.pairs * 2;
   
-  for (let i = 0; i < remainingSlots; i++) {
-    const randomValue = Math.floor(Math.random() * levelConfig.pairs) + 1;
-    pairs.push({ 
-      id: levelConfig.pairs * 2 + i + 1, 
-      value: randomValue, 
-      isFlipped: false, 
-      isMatched: false 
-    });
+  if (totalSlots !== expectedCards) {
+    console.warn(`Level ${levelConfig.level}: Grid size (${totalSlots}) doesn't match pairs (${expectedCards})`);
   }
   
   return pairs.sort(() => Math.random() - 0.5);
