@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Card, GameState, LEVELS, LevelConfig } from "@/types/game";
 import { toast } from "sonner";
 import { useGameProgress } from "@/hooks/useGameProgress";
+import { useAchievements } from "@/hooks/useAchievements";
 
 const createShuffledDeck = (levelConfig: LevelConfig): Card[] => {
   const pairs = [];
@@ -30,6 +31,7 @@ const createShuffledDeck = (levelConfig: LevelConfig): Card[] => {
 
 export const GameBoard = () => {
   const { saveProgress, loadProgress, clearProgress, isLoaded } = useGameProgress();
+  const { achievements, unlockAchievement, updateProgress } = useAchievements();
   
   const [gameState, setGameState] = useState<GameState>(() => {
     const saved = loadProgress();
@@ -141,6 +143,56 @@ export const GameBoard = () => {
             toast("Level Complete! 🏆", { 
               description: `+${Math.round(timeBonus / 100) + moveBonus + levelBonus} points!` 
             });
+            
+            // Basic achievements
+            unlockAchievement("first_win");
+            
+            // Perfect play achievements
+            const isPerfectGame = newMoves <= currentLevelConfig.pairs * 2;
+            if (isPerfectGame) {
+              unlockAchievement("perfect_memory");
+              if (prev.currentLevel >= 10) {
+                updateProgress("perfectionist", 1);
+              }
+            }
+            
+            // Speed achievements
+            if (newMoves < 10) {
+              unlockAchievement("speed_demon");
+            }
+            
+            const completedUnderTimeBonus = timeBonus > 0;
+            if (completedUnderTimeBonus) {
+              updateProgress("lightning_fast", 1);
+              updateProgress("time_master", 1);
+            }
+            
+            // Level milestone achievements
+            if (prev.currentLevel === 5) {
+              unlockAchievement("level_5");
+            }
+            if (prev.currentLevel === 10) {
+              unlockAchievement("level_10");
+            }
+            if (prev.currentLevel === 15) {
+              unlockAchievement("level_15");
+            }
+            if (prev.currentLevel === 20) {
+              unlockAchievement("level_20");
+            }
+            
+            // Efficiency achievement (hard levels with minimum moves)
+            if (prev.currentLevel >= 6 && newMoves === currentLevelConfig.pairs * 2) {
+              unlockAchievement("efficiency_master");
+            }
+            
+            // Progress tracking
+            updateProgress("completionist", prev.currentLevel);
+            updateProgress("high_scorer", newScore);
+            updateProgress("mega_scorer", newScore);
+            updateProgress("legendary_scorer", newScore);
+            updateProgress("persistent", 1);
+            updateProgress("dedicated", 1);
           }
 
           return {
@@ -173,7 +225,7 @@ export const GameBoard = () => {
   const isCardDisabled = gameState.flippedCards.length === 2;
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-background via-background/95 to-primary/10 p-4">
+    <div className="min-h-screen bg-gradient-to-br from-background via-background/95 to-primary/10 p-2 sm:p-4">
       <div className="max-w-4xl mx-auto">
         <GameHeader 
           moves={gameState.moves} 
@@ -182,10 +234,11 @@ export const GameBoard = () => {
           currentLevel={gameState.currentLevel}
           levelName={currentLevelConfig.name}
           score={gameState.score}
+          achievements={achievements}
         />
         
         <motion.div 
-          className={`grid gap-2 sm:gap-4 mb-8 justify-items-center max-w-fit mx-auto`}
+          className={`grid gap-1.5 sm:gap-2 md:gap-4 mb-6 sm:mb-8 justify-items-center max-w-fit mx-auto`}
           style={{ 
             gridTemplateColumns: `repeat(${currentLevelConfig.gridCols}, minmax(0, 1fr))`,
             gridTemplateRows: `repeat(${currentLevelConfig.gridRows}, minmax(0, 1fr))` 
@@ -206,20 +259,20 @@ export const GameBoard = () => {
                   card={card}
                   onClick={() => handleCardClick(card.id)}
                   isDisabled={isCardDisabled}
-                  size={currentLevelConfig.gridCols >= 5 ? "small" : "normal"}
+                  size={currentLevelConfig.gridCols >= 9 ? "tiny" : currentLevelConfig.gridCols >= 5 ? "small" : "normal"}
                 />
               </motion.div>
             ))}
           </AnimatePresence>
         </motion.div>
 
-        <div className="text-center space-y-4">
-          <div className="flex gap-4 justify-center flex-wrap">
+        <div className="text-center space-y-3 sm:space-y-4 px-2">
+          <div className="flex gap-2 sm:gap-4 justify-center flex-wrap">
             <Button
               onClick={() => resetGame(1)}
               variant="outline"
               size="lg"
-              className="bg-background/50 backdrop-blur-sm hover:bg-background/70"
+              className="bg-background/50 backdrop-blur-sm hover:bg-background/70 text-sm sm:text-base px-3 sm:px-8"
             >
               Restart Game
             </Button>
@@ -229,7 +282,7 @@ export const GameBoard = () => {
                 onClick={() => resetGame(gameState.currentLevel)}
                 variant="outline"
                 size="lg"
-                className="bg-background/50 backdrop-blur-sm hover:bg-background/70"
+                className="bg-background/50 backdrop-blur-sm hover:bg-background/70 text-sm sm:text-base px-3 sm:px-8"
               >
                 Retry Level
               </Button>
