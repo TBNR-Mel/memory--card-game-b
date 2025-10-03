@@ -144,28 +144,55 @@ export const GameBoard = () => {
               description: `+${Math.round(timeBonus / 100) + moveBonus + levelBonus} points!` 
             });
             
-            // Check achievements
+            // Basic achievements
             unlockAchievement("first_win");
             
-            if (newMoves <= currentLevelConfig.pairs * 2) {
+            // Perfect play achievements
+            const isPerfectGame = newMoves <= currentLevelConfig.pairs * 2;
+            if (isPerfectGame) {
               unlockAchievement("perfect_memory");
+              if (prev.currentLevel >= 10) {
+                updateProgress("perfectionist", 1);
+              }
             }
             
+            // Speed achievements
             if (newMoves < 10) {
               unlockAchievement("speed_demon");
             }
             
+            const completedUnderTimeBonus = timeBonus > 0;
+            if (completedUnderTimeBonus) {
+              updateProgress("lightning_fast", 1);
+              updateProgress("time_master", 1);
+            }
+            
+            // Level milestone achievements
             if (prev.currentLevel === 5) {
               unlockAchievement("level_5");
             }
-            
-            if (prev.currentLevel === 7) {
-              unlockAchievement("level_7");
+            if (prev.currentLevel === 10) {
+              unlockAchievement("level_10");
+            }
+            if (prev.currentLevel === 15) {
+              unlockAchievement("level_15");
+            }
+            if (prev.currentLevel === 20) {
+              unlockAchievement("level_20");
             }
             
+            // Efficiency achievement (hard levels with minimum moves)
+            if (prev.currentLevel >= 6 && newMoves === currentLevelConfig.pairs * 2) {
+              unlockAchievement("efficiency_master");
+            }
+            
+            // Progress tracking
             updateProgress("completionist", prev.currentLevel);
             updateProgress("high_scorer", newScore);
+            updateProgress("mega_scorer", newScore);
+            updateProgress("legendary_scorer", newScore);
             updateProgress("persistent", 1);
+            updateProgress("dedicated", 1);
           }
 
           return {
@@ -232,7 +259,7 @@ export const GameBoard = () => {
                   card={card}
                   onClick={() => handleCardClick(card.id)}
                   isDisabled={isCardDisabled}
-                  size={currentLevelConfig.gridCols >= 5 ? "small" : "normal"}
+                  size={currentLevelConfig.gridCols >= 9 ? "tiny" : currentLevelConfig.gridCols >= 5 ? "small" : "normal"}
                 />
               </motion.div>
             ))}
