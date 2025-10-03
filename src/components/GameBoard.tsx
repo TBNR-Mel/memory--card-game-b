@@ -6,6 +6,7 @@ import { WinModal } from "./WinModal";
 import { Button } from "@/components/ui/button";
 import { Card, GameState, LEVELS, LevelConfig } from "@/types/game";
 import { toast } from "sonner";
+import { useGameProgress } from "@/hooks/useGameProgress";
 
 const createShuffledDeck = (levelConfig: LevelConfig): Card[] => {
   const pairs = [];
@@ -28,15 +29,23 @@ const createShuffledDeck = (levelConfig: LevelConfig): Card[] => {
 };
 
 export const GameBoard = () => {
-  const [gameState, setGameState] = useState<GameState>({
-    cards: createShuffledDeck(LEVELS[0]),
-    flippedCards: [],
-    moves: 0,
-    isComplete: false,
-    startTime: null,
-    endTime: null,
-    currentLevel: 1,
-    score: 0,
+  const { saveProgress, loadProgress, clearProgress, isLoaded } = useGameProgress();
+  
+  const [gameState, setGameState] = useState<GameState>(() => {
+    const saved = loadProgress();
+    const initialLevel = saved?.currentLevel || 1;
+    const initialScore = saved?.score || 0;
+    
+    return {
+      cards: createShuffledDeck(LEVELS[initialLevel - 1]),
+      flippedCards: [],
+      moves: 0,
+      isComplete: false,
+      startTime: null,
+      endTime: null,
+      currentLevel: initialLevel,
+      score: initialScore,
+    };
   });
 
   const currentLevelConfig = LEVELS[gameState.currentLevel - 1];
@@ -44,6 +53,7 @@ export const GameBoard = () => {
   const resetGame = useCallback((level?: number) => {
     const targetLevel = level || gameState.currentLevel;
     const levelConfig = LEVELS[targetLevel - 1];
+    const newScore = level === 1 ? 0 : gameState.score;
     
     setGameState({
       cards: createShuffledDeck(levelConfig),
@@ -53,13 +63,17 @@ export const GameBoard = () => {
       startTime: null,
       endTime: null,
       currentLevel: targetLevel,
-      score: level ? 0 : gameState.score, // Reset score only if starting from level 1
+      score: newScore,
     });
+    
+    if (level === 1) {
+      clearProgress();
+    }
     
     toast(`Level ${targetLevel}: ${levelConfig.name}! 🎮`, {
       description: `${levelConfig.gridCols}×${levelConfig.gridRows} grid with ${levelConfig.pairs} pairs`
     });
-  }, [gameState.currentLevel, gameState.score]);
+  }, [gameState.currentLevel, gameState.score, clearProgress]);
 
   const handleCardClick = useCallback((cardId: number) => {
     if (gameState.flippedCards.length === 2 || gameState.isComplete) return;
@@ -148,6 +162,13 @@ export const GameBoard = () => {
       resetGame(gameState.currentLevel + 1);
     }
   }, [gameState.currentLevel, resetGame]);
+
+  // Save progress whenever level or score changes
+  useEffect(() => {
+    if (isLoaded) {
+      saveProgress(gameState);
+    }
+  }, [gameState.currentLevel, gameState.score, isLoaded, saveProgress]);
 
   const isCardDisabled = gameState.flippedCards.length === 2;
 
