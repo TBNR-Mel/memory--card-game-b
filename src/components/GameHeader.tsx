@@ -36,34 +36,34 @@ export const GameHeader = ({ moves, startTime, isComplete, currentLevel, levelNa
 
   return (
     <motion.div 
-      className="text-center mb-8"
+      className="text-center mb-6 sm:mb-8 px-2"
       initial={{ opacity: 0, y: -20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.5 }}
     >
-      <h1 className="text-3xl md:text-4xl font-bold text-foreground mb-2 bg-gradient-to-r from-primary to-primary/70 bg-clip-text text-transparent">
+      <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold text-foreground mb-2 bg-gradient-to-r from-primary to-primary/70 bg-clip-text text-transparent">
         Memory Card Game
       </h1>
       
-      <div className="mb-6 text-center">
-        <span className="text-lg text-muted-foreground">Level {currentLevel}: </span>
-        <span className="text-xl font-bold text-foreground">{levelName}</span>
+      <div className="mb-4 sm:mb-6 text-center">
+        <span className="text-sm sm:text-lg text-muted-foreground">Level {currentLevel}: </span>
+        <span className="text-base sm:text-xl font-bold text-foreground">{levelName}</span>
       </div>
       
-      <div className="flex justify-center items-center gap-3 mb-4">
+      <div className="flex justify-center items-center gap-2 sm:gap-3 mb-3 sm:mb-4">
         <AchievementsMenu achievements={achievements} />
       </div>
       
-      <div className="flex justify-center gap-3 md:gap-8 text-sm md:text-lg flex-wrap">
+      <div className="flex justify-center gap-2 sm:gap-3 md:gap-8 text-xs sm:text-sm md:text-lg flex-wrap">
         <motion.div 
-          className="bg-card/50 backdrop-blur-sm px-3 md:px-4 py-2 rounded-lg border border-border/20"
+          className="bg-card/50 backdrop-blur-sm px-2 sm:px-3 md:px-4 py-1.5 sm:py-2 rounded-lg border border-border/20"
           whileHover={{ scale: 1.05 }}
         >
           <span className="text-muted-foreground">Score: </span>
           <span className="text-foreground font-bold">{score.toLocaleString()}</span>
         </motion.div>
         <motion.div 
-          className="bg-card/50 backdrop-blur-sm px-3 md:px-4 py-2 rounded-lg border border-border/20"
+          className="bg-card/50 backdrop-blur-sm px-2 sm:px-3 md:px-4 py-1.5 sm:py-2 rounded-lg border border-border/20"
           whileHover={{ scale: 1.05 }}
         >
           <span className="text-muted-foreground">Moves: </span>
@@ -71,7 +71,7 @@ export const GameHeader = ({ moves, startTime, isComplete, currentLevel, levelNa
         </motion.div>
         
         <motion.div 
-          className="bg-card/50 backdrop-blur-sm px-3 md:px-4 py-2 rounded-lg border border-border/20"
+          className="bg-card/50 backdrop-blur-sm px-2 sm:px-3 md:px-4 py-1.5 sm:py-2 rounded-lg border border-border/20"
           whileHover={{ scale: 1.05 }}
         >
           <span className="text-muted-foreground">Time: </span>

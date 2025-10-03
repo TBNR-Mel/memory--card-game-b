@@ -198,7 +198,7 @@ export const GameBoard = () => {
   const isCardDisabled = gameState.flippedCards.length === 2;
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-background via-background/95 to-primary/10 p-4">
+    <div className="min-h-screen bg-gradient-to-br from-background via-background/95 to-primary/10 p-2 sm:p-4">
       <div className="max-w-4xl mx-auto">
         <GameHeader 
           moves={gameState.moves} 
@@ -211,7 +211,7 @@ export const GameBoard = () => {
         />
         
         <motion.div 
-          className={`grid gap-2 sm:gap-4 mb-8 justify-items-center max-w-fit mx-auto`}
+          className={`grid gap-1.5 sm:gap-2 md:gap-4 mb-6 sm:mb-8 justify-items-center max-w-fit mx-auto`}
           style={{ 
             gridTemplateColumns: `repeat(${currentLevelConfig.gridCols}, minmax(0, 1fr))`,
             gridTemplateRows: `repeat(${currentLevelConfig.gridRows}, minmax(0, 1fr))` 
@@ -239,13 +239,13 @@ export const GameBoard = () => {
           </AnimatePresence>
         </motion.div>
 
-        <div className="text-center space-y-4">
-          <div className="flex gap-4 justify-center flex-wrap">
+        <div className="text-center space-y-3 sm:space-y-4 px-2">
+          <div className="flex gap-2 sm:gap-4 justify-center flex-wrap">
             <Button
               onClick={() => resetGame(1)}
               variant="outline"
               size="lg"
-              className="bg-background/50 backdrop-blur-sm hover:bg-background/70"
+              className="bg-background/50 backdrop-blur-sm hover:bg-background/70 text-sm sm:text-base px-3 sm:px-8"
             >
               Restart Game
             </Button>
@@ -255,7 +255,7 @@ export const GameBoard = () => {
                 onClick={() => resetGame(gameState.currentLevel)}
                 variant="outline"
                 size="lg"
-                className="bg-background/50 backdrop-blur-sm hover:bg-background/70"
+                className="bg-background/50 backdrop-blur-sm hover:bg-background/70 text-sm sm:text-base px-3 sm:px-8"
               >
                 Retry Level
               </Button>
