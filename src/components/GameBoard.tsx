@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Card, GameState, LEVELS, LevelConfig } from "@/types/game";
 import { toast } from "sonner";
 import { useGameProgress } from "@/hooks/useGameProgress";
+import { useAchievements } from "@/hooks/useAchievements";
 
 const createShuffledDeck = (levelConfig: LevelConfig): Card[] => {
   const pairs = [];
@@ -30,6 +31,7 @@ const createShuffledDeck = (levelConfig: LevelConfig): Card[] => {
 
 export const GameBoard = () => {
   const { saveProgress, loadProgress, clearProgress, isLoaded } = useGameProgress();
+  const { achievements, unlockAchievement, updateProgress } = useAchievements();
   
   const [gameState, setGameState] = useState<GameState>(() => {
     const saved = loadProgress();
@@ -141,6 +143,29 @@ export const GameBoard = () => {
             toast("Level Complete! 🏆", { 
               description: `+${Math.round(timeBonus / 100) + moveBonus + levelBonus} points!` 
             });
+            
+            // Check achievements
+            unlockAchievement("first_win");
+            
+            if (newMoves <= currentLevelConfig.pairs * 2) {
+              unlockAchievement("perfect_memory");
+            }
+            
+            if (newMoves < 10) {
+              unlockAchievement("speed_demon");
+            }
+            
+            if (prev.currentLevel === 5) {
+              unlockAchievement("level_5");
+            }
+            
+            if (prev.currentLevel === 7) {
+              unlockAchievement("level_7");
+            }
+            
+            updateProgress("completionist", prev.currentLevel);
+            updateProgress("high_scorer", newScore);
+            updateProgress("persistent", 1);
           }
 
           return {
@@ -182,6 +207,7 @@ export const GameBoard = () => {
           currentLevel={gameState.currentLevel}
           levelName={currentLevelConfig.name}
           score={gameState.score}
+          achievements={achievements}
         />
         
         <motion.div 

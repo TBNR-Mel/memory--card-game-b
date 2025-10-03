@@ -1,5 +1,7 @@
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
+import { AchievementsMenu } from "./AchievementsMenu";
+import { Achievement } from "@/types/achievements";
 
 interface GameHeaderProps {
   moves: number;
@@ -8,9 +10,10 @@ interface GameHeaderProps {
   currentLevel: number;
   levelName: string;
   score: number;
+  achievements: Achievement[];
 }
 
-export const GameHeader = ({ moves, startTime, isComplete, currentLevel, levelName, score }: GameHeaderProps) => {
+export const GameHeader = ({ moves, startTime, isComplete, currentLevel, levelName, score, achievements }: GameHeaderProps) => {
   const [time, setTime] = useState(0);
 
   useEffect(() => {
@@ -45,6 +48,10 @@ export const GameHeader = ({ moves, startTime, isComplete, currentLevel, levelNa
       <div className="mb-6 text-center">
         <span className="text-lg text-muted-foreground">Level {currentLevel}: </span>
         <span className="text-xl font-bold text-foreground">{levelName}</span>
+      </div>
+      
+      <div className="flex justify-center items-center gap-3 mb-4">
+        <AchievementsMenu achievements={achievements} />
       </div>
       
       <div className="flex justify-center gap-3 md:gap-8 text-sm md:text-lg flex-wrap">
